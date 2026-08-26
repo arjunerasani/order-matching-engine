@@ -10,7 +10,7 @@ enum class orderType: uint8_t {
 
 struct order {
     // uint64_t is used to support large numbers of orders just like real life engines
-    orderType type;
+    orderType orderType;
     uint64_t orderId;
     uint64_t ownerId;
     uint64_t price;
