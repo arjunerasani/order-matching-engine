@@ -1,3 +1,4 @@
+#pragma once
 #include "price_level.hpp"
 #include "order.hpp"
 

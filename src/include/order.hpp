@@ -1,3 +1,5 @@
+// all includes will only be included once
+#pragma once
 #include <cstdint>
 
 // this file represents an individual order in the order book
