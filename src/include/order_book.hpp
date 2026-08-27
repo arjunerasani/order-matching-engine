@@ -10,7 +10,7 @@ struct orderLocation {
     orderType orderType;
     uint64_t price;
 
-    // can't just have a normal iterator because the iterator needs to now what it is iterating over
+    // can't just have a normal iterator because the iterator needs to know what it is iterating over
     // this is just 1 value btw
     std::list<order>::iterator iterator; // this is a pointer to the node inside the list
 };
@@ -30,10 +30,8 @@ private:
     std::unordered_map<uint64_t, orderLocation> orderIndex;
 
 public:
-    orderBook(std::map<uint64_t, priceLevel, std::greater<uint64_t>> b, std::map<uint64_t, priceLevel> a) {
-        bids = b;
-        asks = a;
-    }
+    // changed this to a default constructor becuase the orderBook starts empty
+    orderBook() = default;
 
     void addOrder(order& newOrder) {
         std::list<order>::iterator orderIterator;
@@ -48,11 +46,15 @@ public:
                 bids[newOrder.price] = newPriceLevel;
 
                 // this gets the last order added and marks its location in the unordered map using an iterator
-                orderIterator = std::prev(newPriceLevel.orders.end());
+                // the iterator is grabbed from a reference directly to the map which doesn't get destroyed when this method ends
+                // unlike newPriceLevel which is on the stack
+                priceLevel& storedLevel = bids[newOrder.price];
+                orderIterator = std::prev(storedLevel.orders.end());
             } else {
                 // this finds the existing price level by using the key and then adds the new order
                 // to the back of the price level
-                priceLevel existingPriceLevel = bids[newOrder.price];
+                // have to use a reference here so a copy isn't made
+                priceLevel& existingPriceLevel = bids[newOrder.price];
                 existingPriceLevel.appendOrderToBack(existingPriceLevel, newOrder);
 
                 orderIterator = std::prev(existingPriceLevel.orders.end());
@@ -65,9 +67,10 @@ public:
                 priceLevel newPriceLevel = priceLevel{.price = newOrder.price, .orders = std::list<order>{newOrder}};
                 asks[newOrder.price] = newPriceLevel;
 
-                orderIterator = std::prev(newPriceLevel.orders.end());
+                priceLevel& storedPriceLevel = asks[newOrder.price];
+                orderIterator = std::prev(storedPriceLevel.orders.end());
             } else {
-                priceLevel existingPriceLevel = asks[newOrder.price];
+                priceLevel& existingPriceLevel = asks[newOrder.price];
                 existingPriceLevel.appendOrderToBack(existingPriceLevel, newOrder);
 
                 orderIterator = std::prev(existingPriceLevel.orders.end());
@@ -93,14 +96,47 @@ public:
                 // use a reference so the actual priceLevel is modified
                 priceLevel& cancelledLevel = bids[cancelledOrder.price];
 
+                // erase the cancelled order from the list of orders at this price level using the iterator stored in the orderLocation
                 cancelledLevel.orders.erase(cancelledOrder.iterator);
+
+                // this is for if the priceLevel is empty it has to be removed (frees memory)
+                if (cancelledLevel.orders.empty()) {
+                    bids.erase(cancelledOrder.price);
+                }
             } else {
                 priceLevel& cancelledLevel = asks[cancelledOrder.price];
 
                 cancelledLevel.orders.erase(cancelledOrder.iterator);
+
+                if (cancelledLevel.orders.empty()) {
+                    asks.erase(cancelledOrder.price);
+                }
             }
 
+            // erase the cancelled order from the unordered map using the map pair iterator we got from the find function above
             orderIndex.erase(mapIt);
         }
+    }
+
+    // gets the best bid which is the first priceLevel (highest price) in the map
+    // have to return a pointer because just returning normally with a return type that isn't void
+    // will cause these methods to not compile
+    priceLevel* getBestBid() {
+        if (bids.begin() == bids.end()) {
+            std::cerr << "Error: Attempted to get a priceLevel (bids) that doesn't exist." << std::endl;
+            return nullptr;
+        }
+
+        return &bids.begin()->second;
+    }
+
+    // gets the best ask which is the first priceLevel (lowest price) in the map
+    priceLevel* getBestAsk() {
+        if (asks.begin() == asks.end()) {
+            std::cerr << "Error: Attempted to get a priceLevel (asks) that doesn't exist." << std::endl;
+            return nullptr;
+        }
+
+        return &asks.begin()->second;
     }
 };
