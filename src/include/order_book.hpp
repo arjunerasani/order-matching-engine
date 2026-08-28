@@ -36,9 +36,9 @@ public:
 
     void addOrder(order& newOrder);
 
-    bool cancelOrder(uint64_t orderId);
+    void cancelOrder(uint64_t orderId);
 
     priceLevel* getBestBid();
-    
+
     priceLevel* getBestAsk();
 };
