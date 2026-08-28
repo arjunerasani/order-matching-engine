@@ -5,7 +5,7 @@
 #include <cstdint>
 
 // this file represents all orders queued at a specific price level in the order book
-// at a singular price leve, orders should be executed in FIFO order, so a doubly linked list
+// at a singular price level, orders should be executed in FIFO order, so a doubly linked list
 // gives the best performance for this use case, as we can add and remove orders from the front and back of the list in O(1) time complexity
 
 struct priceLevel {
