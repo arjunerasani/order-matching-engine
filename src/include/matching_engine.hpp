@@ -6,7 +6,8 @@
 
 class matchingEngine {
 private:
-    orderBook orderBook;
+    orderBook book;
+    uint64_t ids;
 
 public:
     matchingEngine() = default;
