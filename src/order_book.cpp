@@ -92,7 +92,7 @@ void orderBook::cancelOrder(uint64_t orderId) {
 // will cause these methods to not compile
 priceLevel *orderBook::getBestBid() {
     if (bids.begin() == bids.end()) {
-        std::cerr << "Error: Attempted to get a priceLevel (bids) that doesn't exist." << std::endl;
+        //std::cerr << "Error: Attempted to get a priceLevel (bids) that doesn't exist." << std::endl;
         return nullptr;
     }
 
@@ -102,7 +102,7 @@ priceLevel *orderBook::getBestBid() {
 // gets the best ask which is the first priceLevel (lowest price) in the map
 priceLevel *orderBook::getBestAsk() {
     if (asks.begin() == asks.end()) {
-        std::cerr << "Error: Attempted to get a priceLevel (asks) that doesn't exist." << std::endl;
+        //std::cerr << "Error: Attempted to get a priceLevel (asks) that doesn't exist." << std::endl;
         return nullptr;
     }
 
