@@ -1,17 +1,8 @@
-#include "include/order_book.hpp"
-#include "include/order.hpp"
-#include "include/price_level.hpp"
-#include "include/matching_engine.hpp"
-
-#include <iostream>
-#include <cassert>
-#include <chrono>
-#include <vector>
-
+#include "tests.hpp"
 // -----------------------------------------------------------------------------
 // Test 1: Full Match (Exact Fill)
 // -----------------------------------------------------------------------------
-void testFullMatch() {
+void tests::testFullMatch() {
     matchingEngine engine;
 
     // Resting Ask: Sell 10 @ $100
@@ -38,7 +29,7 @@ void testFullMatch() {
 // -----------------------------------------------------------------------------
 // Test 2: Partial Fill & Queue Remainder
 // -----------------------------------------------------------------------------
-void testPartialFillAndQueue() {
+void tests::testPartialFillAndQueue() {
     matchingEngine engine;
 
     // Resting Ask: Sell 5 @ $100
@@ -66,7 +57,7 @@ void testPartialFillAndQueue() {
 // -----------------------------------------------------------------------------
 // Test 3: Multi-Level Price Sweep
 // -----------------------------------------------------------------------------
-void testMultiLevelSweep() {
+void tests::testMultiLevelSweep() {
     matchingEngine engine;
 
     // Set up ask ladder:
@@ -99,7 +90,7 @@ void testMultiLevelSweep() {
 // -----------------------------------------------------------------------------
 // Test 4: Time Priority at Same Price Level (FIFO)
 // -----------------------------------------------------------------------------
-void testTimePriorityExecution() {
+void tests::testTimePriorityExecution() {
     matchingEngine engine;
 
     // Two sell orders at the exact same price
@@ -125,7 +116,7 @@ void testTimePriorityExecution() {
 // -----------------------------------------------------------------------------
 // Test 5: No Cross (Order Book Queueing)
 // -----------------------------------------------------------------------------
-void testNoCross() {
+void tests::testNoCross() {
     matchingEngine engine;
 
     // Bid @ $99, Ask @ $101 (Spread = $2, no cross)
@@ -140,36 +131,4 @@ void testNoCross() {
 
     assert(engine.getBestBid()->price == 99);
     assert(engine.getBestAsk()->price == 101);
-}
-
-// -----------------------------------------------------------------------------
-// Main Runner
-// -----------------------------------------------------------------------------
-int main() {
-    std::cout << "--- Running MatchingEngine Step 3 Unit Tests ---" << std::endl;
-
-    auto start = std::chrono::high_resolution_clock::now();
-
-    testFullMatch();
-    std::cout << "[PASS] Test 1: Full Match" << std::endl;
-
-    testPartialFillAndQueue();
-    std::cout << "[PASS] Test 2: Partial Fill & Queue Remainder" << std::endl;
-
-    testMultiLevelSweep();
-    std::cout << "[PASS] Test 3: Multi-Level Price Sweep" << std::endl;
-
-    testTimePriorityExecution();
-    std::cout << "[PASS] Test 4: Time Priority Execution (FIFO)" << std::endl;
-
-    testNoCross();
-    std::cout << "[PASS] Test 5: No Cross / Book Queueing" << std::endl;
-
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-
-    std::cout << "\n--- All Step 3 Unit Tests Passed Successfully! (" 
-              << duration << " us) ---" << std::endl;
-
-    return 0;
-}
+};
