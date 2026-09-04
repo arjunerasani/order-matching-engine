@@ -3,6 +3,7 @@
 #include "trade_event.hpp"
 
 #include <random>
+#include <thread>
 
 // this method just generates an equal number of buy and sell orders at varying prices
 std::vector<order> benchmark::orderGenerator() {
@@ -39,18 +40,54 @@ std::vector<order> benchmark::orderGenerator() {
     }
 
     return orders;
-};
+}
+
+// helper method for the producer
+// takes in orders and a ringbuffer and feeds the orders into the ringbuffer
+void benchmark::producerTask(std::vector<order>& orders, ringBuffer& rb) {
+    for (auto& ord: orders) {
+        // if the buffer is full then just yield for more orders to clear out
+        while (!rb.tryPush(ord)) {
+            std::this_thread::yield();
+        }
+    }
+}
+
+// helper method for the producer
+// takes in a ringbuffer and gets the orders out of it concurrently with producer
+void benchmark::consumerTask(ringBuffer& rb) {
+    size_t processedOrders = 0;
+
+    order poppedOrder;
+
+    while (processedOrders < 1000000) {
+        if (rb.tryPop(poppedOrder)) {
+            // if we can pop the order then submit it to the engine
+            // and increment count
+            engine.submitOrder(poppedOrder);
+            processedOrders++;
+        } else {
+            // otherwise we yield
+            std::this_thread::yield();
+        }
+    }
+}
 
 // this method is for benchmarking the amount of time the engine takes to go through all 1,000,000 orders
 void benchmark::benchmarkTimes() {
     std::vector<order> orders = orderGenerator();
+    ringBuffer rb;
 
     // this starts the timer and sees how long it takes for the orders to be processed
     auto startTime = std::chrono::high_resolution_clock::now();
 
-    for (auto& order: orders) {
-        engine.submitOrder(order);
-    }
+    // create the threads with their respective task methods and inputs
+    std::thread producer(&benchmark::producerTask, this, std::ref(orders), std::ref(rb));
+    std::thread consumer(&benchmark::consumerTask, this, std::ref(rb));
+
+    // wait for completion
+    producer.join();
+    consumer.join();
 
     // get the duration this ran for
     auto endTime = std::chrono::high_resolution_clock::now();
